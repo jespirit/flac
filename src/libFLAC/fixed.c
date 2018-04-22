@@ -224,7 +224,7 @@ uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t d
 	FLAC__int32 last_error_2 = last_error_1 - (data[-2] - data[-3]);
 	FLAC__int32 last_error_3 = last_error_2 - (data[-2] - 2*data[-3] + data[-4]);
 
-#if defined __GNUC__ && defined __arm__
+#if defined __GNUC__ && (defined __arm__ || defined __ARM_ARCH)
 	FLAC__int32 error;
 	uint32_t i, order;
 
@@ -283,7 +283,7 @@ uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t d
 		error -= last_error_2; total_error_3 += local_abs(error); last_error_2 = save; save = error;
 		error -= last_error_3; total_error_4 += local_abs(error); last_error_3 = save;
 	}
-#endif /* if defined __GNUC__ && defined __arm__ */
+#endif /* if defined __GNUC__ && (defined __arm__ || defined __ARM_ARCH) */
 
 	if(total_error_0 < flac_min(flac_min(flac_min(total_error_1, total_error_2), total_error_3), total_error_4))
 		order = 0;
