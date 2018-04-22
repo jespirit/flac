@@ -235,7 +235,7 @@ uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t d
 	register FLAC__uint32 total_error_3 asm("r21") = 0;
 	register FLAC__uint32 total_error_4 asm("r22") = 0;
 
-	__asm__ ("movi v10.4s, #0" ::: "v10");
+	asm ("movi v10.4s, #0" ::: "v10");
 
 	for (i = 0; i < data_len; i++) {
 		error = data[i];
@@ -251,16 +251,16 @@ uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t d
 
 		total_error_0 += local_abs(error);
 
-		__asm__ volatile (
+		asm volatile (
 			"ldr q11, [%[src]]			\n\t"
 			"abs v11.4s, v11.4s			\n\t"
 			"add v10.4s, v10.4s, v11.4s	\n\t"
 			:: [src] "r" (errors), "m" (errors[0])
-            : "v10", "v11"
+			: "v10", "v11"
 		);
 	}
 
-	__asm__ volatile (
+	asm volatile (
 		"mov w19, v10.s[3]	\n\t"
 		"mov w20, v10.s[2]	\n\t"
 		"mov w21, v10.s[1]	\n\t"
@@ -269,7 +269,7 @@ uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t d
 		  "=r" (total_error_2),
 		  "=r" (total_error_3),
 		  "=r" (total_error_4)
-		: "v10"
+		:: "v10"
 	);
 #else
 	FLAC__int32 error, save;
