@@ -223,6 +223,8 @@ uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t d
 	FLAC__int32 last_error_1 = data[-1] - data[-2];
 	FLAC__int32 last_error_2 = last_error_1 - (data[-2] - data[-3]);
 	FLAC__int32 last_error_3 = last_error_2 - (data[-2] - 2*data[-3] + data[-4]);
+
+#if defined __GNUC__ && defined __arm__
 	FLAC__int32 error;
 	uint32_t i, order;
 
@@ -269,6 +271,19 @@ uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t d
 		  "=r" (total_error_4)
 		: "v10"
 	);
+#else
+	FLAC__int32 error, save;
+	FLAC__uint32 total_error_0 = 0, total_error_1 = 0, total_error_2 = 0, total_error_3 = 0, total_error_4 = 0;
+	uint32_t i, order;
+
+	for (i = 0; i < data_len; i++) {
+		error = data[i]; total_error_0 += local_abs(error);                      save = error;
+		error -= last_error_0; total_error_1 += local_abs(error); last_error_0 = save; save = error;
+		error -= last_error_1; total_error_2 += local_abs(error); last_error_1 = save; save = error;
+		error -= last_error_2; total_error_3 += local_abs(error); last_error_2 = save; save = error;
+		error -= last_error_3; total_error_4 += local_abs(error); last_error_3 = save;
+	}
+#endif /* if defined __GNUC__ && defined __arm__ */
 
 	if(total_error_0 < flac_min(flac_min(flac_min(total_error_1, total_error_2), total_error_3), total_error_4))
 		order = 0;
