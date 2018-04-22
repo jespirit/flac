@@ -2,6 +2,7 @@
 *.la
 *.lo
 *.o
+*.obj
 *.so
 *.dll
 *.dylib
@@ -75,3 +76,33 @@ test/picture.diff
 test/picture.log
 .dirstamp
 microbench/benchmark_residual
+
+# Visual Studio Files
+# User-specific files
+*.suo
+*.user
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Dd]ebug_dynamic/
+[Rr]elease/
+[Rr]elease_dynamic/
+x64/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# iffscan project
+[Dd]ebug_iffscan/
+[Rr]elease_iffscan/
+
+# Visual C++ cache files
+ipch/
+*.aps
+*.ncb
+*.opensdf
+*.sdf
+*.cachefile
