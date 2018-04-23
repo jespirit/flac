@@ -225,51 +225,52 @@ uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t d
 	FLAC__int32 last_error_3 = last_error_2 - (data[-2] - 2*data[-3] + data[-4]);
 
 #if defined __GNUC__ && (defined __arm__ || defined __ARM_ARCH)
-	FLAC__int32 error;
+	FLAC__int32 error_0 = 0, error_1 = 0, error_2 = 0, error_3 = 0, error_4 = 0;
+	FLAC__uint32 total_error_0 = 0, total_error_1 = 0, total_error_2 = 0, total_error_3 = 0, total_error_4 = 0;
 	uint32_t i, order;
 
-	FLAC__int32 errors[4];
-	FLAC__uint32 total_error_0 = 0;
-	register FLAC__uint32 total_error_1 asm("r19") = 0;
-	register FLAC__uint32 total_error_2 asm("r20") = 0;
-	register FLAC__uint32 total_error_3 asm("r21") = 0;
-	register FLAC__uint32 total_error_4 asm("r22") = 0;
+	asm ("movi v0.4s, #0" ::: "v0");
 
-	asm ("movi v10.4s, #0" ::: "v10");
-
-	for (i = 0; i < data_len; i++) {
-		error = data[i];
-		errors[0] = error - last_error_0;
-		errors[1] = errors[0] - last_error_1;
-		errors[2] = errors[1] - last_error_2;
-		errors[3] = errors[2] - last_error_3;
-
-		last_error_0 = error;
-		last_error_1 = errors[0];
-		last_error_2 = errors[1];
-		last_error_3 = errors[2];
-
-		total_error_0 += local_abs(error);
+	for(i = 0; i < data_len; i++) {
+		error_0 = data[i];
 
 		asm volatile (
-			"ldr q11, [%[src]]			\n\t"
-			"abs v11.4s, v11.4s			\n\t"
-			"add v10.4s, v10.4s, v11.4s	\n\t"
-			:: [src] "r" (errors), "m" (errors[0])
-			: "v10", "v11"
-		);
+			"sub %w[e1], %w[e0], %w[le0]	\n\t"
+			"sub %w[e2], %w[e1], %w[le1]	\n\t"
+			"sub %w[e3], %w[e2], %w[le2]	\n\t"
+			"sub %w[e4], %w[e3], %w[le3]	\n\t"
+			"cmp %w[e0], #0x0				\n\t"
+			"cneg %w[le0], %w[e0], lt		\n\t"
+			"add %w[te0], %w[te0], %w[le0]	\n\t"
+			"mov %w[le0], %w[e0]			\n\t"
+			"mov %w[le1], %w[e1]			\n\t"
+			"mov %w[le2], %w[e2]			\n\t"
+			"mov %w[le3], %w[e3]			\n\t"
+			"ins v1.4s[3], %w[e1]			\n\t"
+			"ins v1.4s[2], %w[e2]			\n\t"
+			"ins v1.4s[1], %w[e3]			\n\t"
+			"ins v1.4s[0], %w[e4]			\n\t"
+			"abs v1.4s, v1.4s				\n\t"
+			"add v0.4s, v0.4s, v1.4s		\n\t"
+			: [le0] "+r" (last_error_0),
+			[le1] "+r" (last_error_1), [le2] "+r" (last_error_2), [le3] "+r" (last_error_3),
+			[e1] "+r" (error_1), [e2] "+r" (error_2), [e3] "+r" (error_3), [e4] "+r" (error_4),
+			[te0] "+r" (total_error_0)
+			: [e0] "r" (error_0)
+			: "v0", "v1"
+			);
 	}
 
 	asm volatile (
-		"mov w19, v10.s[3]	\n\t"
-		"mov w20, v10.s[2]	\n\t"
-		"mov w21, v10.s[1]	\n\t"
-		"mov w22, v10.s[0]	\n\t"
-		: "=r" (total_error_1),
-		  "=r" (total_error_2),
-		  "=r" (total_error_3),
-		  "=r" (total_error_4)
-		:: "v10"
+		"mov %w[te1], v0.s[3]	\n\t"
+		"mov %w[te2], v0.s[2]	\n\t"
+		"mov %w[te3], v0.s[1]	\n\t"
+		"mov %w[te4], v0.s[0]	\n\t"
+		: [te1] "=r" (total_error_1),
+		  [te2] "=r" (total_error_2),
+		  [te3] "=r" (total_error_3),
+		  [te4] "=r" (total_error_4)
+		:: "v0"
 	);
 #else
 	FLAC__int32 error, save;
